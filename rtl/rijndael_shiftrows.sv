@@ -11,12 +11,11 @@ module rijndael_shiftrows #(
     // Internal 2D byte matrices
     logic [7:0] istate_matrix [4][NB];
     logic [7:0] ostate_matrix [4][NB];
-    genvar i, j;
 
     // Flattened state <-> State matrix mapping
     generate
-        for (i = 0; i < NB; i++) begin : gen_cols
-            for (j = 0; j < 4; j++) begin : gen_rows
+        for (genvar i = 0; i < NB; i++) begin : gen_cols
+            for (genvar j = 0; j < 4; j++) begin : gen_rows
                 localparam int HI = (STATESIZE-1) - (i*32 + j*8);
                 assign istate_matrix[j][i] = in_state[HI -: 8];
                 assign out_state[HI -: 8]  = ostate_matrix[j][i];
@@ -25,14 +24,14 @@ module rijndael_shiftrows #(
     endgenerate
 
     // Determine row-shift pattern
-    // Nb=4 or 6  -> shifts = {0,1,2,3}
-    // Nb=8       -> shifts = {0,1,3,4}
+    // NB = 4 or 6  -> shifts = {0,1,2,3}
+    // NB = 8       -> shifts = {0,1,3,4}
     localparam int SHIFT [4] = (NB == 8) ? '{0,1,3,4} : '{0,1,2,3};
 
     // Perform shift rows operation itself
     generate
-        for (j = 0; j < 4; j++) begin : gen_shift_rows
-            for (i = 0; i < NB; i++) begin : gen_shift_cols
+        for (genvar j = 0; j < 4; j++) begin : gen_shift_rows
+            for (genvar i = 0; i < NB; i++) begin : gen_shift_cols
                 assign ostate_matrix[j][i] = istate_matrix[j][(i + SHIFT[j]) % NB];
             end
         end

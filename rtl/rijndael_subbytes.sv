@@ -10,9 +10,8 @@ module rijndael_subbytes #(
 
     localparam int NUMBYTES = 8 * NB;
 
-    genvar i;
     generate
-        for (i = 0; i < NUMBYTES; i++) begin : gen_sbox
+        for (genvar i = 0; i < NUMBYTES; i++) begin : gen_sbox
             rijndael_sbox sbox (
                 .in_byte(in_state[i+7:i]),
                 .out_byte(out_state[i+7:i])
