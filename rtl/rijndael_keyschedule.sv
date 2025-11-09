@@ -24,7 +24,7 @@ module rijndael_keyschedule #(
      * Compute the number of key_i schedule steps that need to be performed during
      * each update to ensure that the full internal state gets updated.
      */
-    localparam int NUMSTEPS = (KEYSTATESIZE + NK - 1) / NK;
+    localparam int NUMSTEPS = (NB + NK - 1) / NB;
 
     /**
      * This parameter contains the number of different cases that must be handled
@@ -46,7 +46,7 @@ module rijndael_keyschedule #(
     // ------------------------------------------------------------
 
     // Signals for storing the current and next internal keystate
-    logic [KEYSIZE-1:0] keystate, next_keystate;
+    logic [KEYSTATESIZE-1:0] keystate, next_keystate;
 
     // Signals for storing current and next round constants for each step instance
     logic [7:0] rc [NUMSTEPS];
@@ -65,10 +65,12 @@ module rijndael_keyschedule #(
         for (genvar i = 0; i < NUMSTEPS; i++) begin : gen_keyschedulestep
             assign next_rc[i] = mul2(rc[i]);
 
+            localparam int HI = (i + 1) * KEYSIZE - 1;
+
             rijndael_keyschedulestep #(.NK (NK)) keyschedulestep (
-                .keystate_i      (keystate),
+                .keystate_i      (keystate[HI -: KEYSIZE]),
                 .rc_i            (rc[i]),
-                .next_keystate_o (next_keystate)
+                .next_keystate_o (next_keystate[HI -: KEYSIZE])
             );
         end
     endgenerate
@@ -92,8 +94,8 @@ module rijndael_keyschedule #(
                 always_comb begin
                     case (key_variation_state)
                         2'b00  : roundkey_o = keystate[KEYSIZE-1:0];
-                        2'b01  : roundkey_o = {next_keystate[2*KEYSIZE-STATESIZE-1:0], keystate[STATESIZE-1:KEYSIZE]};
-                        2'b10  : roundkey_o = next_keystate[STATESIZE-1:2*KEYSIZE-STATESIZE];
+                        2'b01  : roundkey_o = {next_keystate[2*KEYSIZE-KEYSTATESIZE-1:0], keystate[KEYSTATESIZE-1:KEYSIZE]};
+                        2'b10  : roundkey_o = next_keystate[KEYSTATESIZE-1:2*KEYSIZE-KEYSTATESIZE];
                         default: roundkey_o = 'h0;
                     endcase
 
@@ -105,9 +107,9 @@ module rijndael_keyschedule #(
                 always_comb begin
                     case (key_variation_state)
                         2'b00  : roundkey_o = keystate[KEYSIZE-1:0];
-                        2'b01  : roundkey_o = {next_keystate[2*KEYSIZE-STATESIZE-1:0], keystate[STATESIZE-1:KEYSIZE]};
-                        2'b10  : roundkey_o = {next_keystate[3*KEYSIZE-2*STATESIZE-1:0], keystate[STATESIZE-1:2*KEYSIZE-STATESIZE]};
-                        2'b11  : roundkey_o = next_keystate[STATESIZE-1:3*KEYSIZE-2*STATESIZE];
+                        2'b01  : roundkey_o = {next_keystate[2*KEYSIZE-KEYSTATESIZE-1:0], keystate[KEYSTATESIZE-1:KEYSIZE]};
+                        2'b10  : roundkey_o = {next_keystate[3*KEYSIZE-2*KEYSTATESIZE-1:0], keystate[KEYSTATESIZE-1:2*KEYSIZE-KEYSTATESIZE]};
+                        2'b11  : roundkey_o = next_keystate[KEYSTATESIZE-1:3*KEYSIZE-2*KEYSTATESIZE];
                         default: roundkey_o = 'h0;
                     endcase
 
@@ -134,7 +136,9 @@ module rijndael_keyschedule #(
             keystate <= key_i;
         end else if (enable_i && update_state) begin
             // Update round constants
-            rc <= next_rc;
+            for (int i = 0; i < NUMSTEPS; i++) begin
+               rc[i] <= next_rc[i];
+            end
             // Update internal key_i state
             keystate <= next_keystate;
         end

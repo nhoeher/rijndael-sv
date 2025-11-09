@@ -46,6 +46,7 @@ module rijndael_keyschedulestep #(
     );
 
     // Perform addrcon
+    assign in_addrcon = out_subword;
     assign out_addrcon = {in_addrcon[31:24] ^ rc_i, in_addrcon[23:0]};
 
     // Compute the first 4 output words (same for all values of NK)

@@ -8,13 +8,13 @@ module rijndael_subbytes #(
         output logic [STATESIZE-1:0] state_o
     );
 
-    localparam int NUMBYTES = 8 * NB;
+    localparam int NUMBYTES = 4 * NB;
 
     generate
         for (genvar i = 0; i < NUMBYTES; i++) begin : gen_sbox
             rijndael_sbox sbox (
-                .x_i (state_i[i+7:i]),
-                .y_o (state_o[i+7:i])
+                .x_i (state_i[8*i+7 -: 8]),
+                .y_o (state_o[8*i+7 -: 8])
             );
         end
     endgenerate

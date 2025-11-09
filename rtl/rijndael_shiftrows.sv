@@ -26,14 +26,19 @@ module rijndael_shiftrows #(
     // Determine row-shift pattern
     // NB = 4 or 6  -> shifts = {0,1,2,3}
     // NB = 8       -> shifts = {0,1,3,4}
-    localparam int SHIFT [4] = (NB == 8) ? '{0,1,3,4} : '{0,1,2,3};
+    // => We use separate localparams instead of an array-type due to missing Icarus support
+    localparam int SHIFT0 = 0;
+    localparam int SHIFT1 = 1;
+    localparam int SHIFT2 = (NB == 8) ? 3 : 2;
+    localparam int SHIFT3 = (NB == 8) ? 4 : 3;
 
     // Perform shift rows operation itself
     generate
-        for (genvar j = 0; j < 4; j++) begin : gen_shift_rows
-            for (genvar i = 0; i < NB; i++) begin : gen_shift_cols
-                assign ostate_matrix[j][i] = istate_matrix[j][(i + SHIFT[j]) % NB];
-            end
+        for (genvar i = 0; i < NB; i++) begin : gen_shift_cols
+            assign ostate_matrix[0][i] = istate_matrix[0][(i + SHIFT0) % NB];
+            assign ostate_matrix[1][i] = istate_matrix[1][(i + SHIFT1) % NB];
+            assign ostate_matrix[2][i] = istate_matrix[2][(i + SHIFT2) % NB];
+            assign ostate_matrix[3][i] = istate_matrix[3][(i + SHIFT3) % NB];
         end
     endgenerate
 
