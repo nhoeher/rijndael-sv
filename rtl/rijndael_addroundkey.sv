@@ -4,10 +4,10 @@ module rijndael_addroundkey #(
     parameter int NB = 4,
     localparam int STATESIZE = 32 * NB
 ) (
-    input  logic [STATESIZE-1:0] in_state,
-    input  logic [STATESIZE-1:0] roundkey,
-    output logic [STATESIZE-1:0] out_state
+    input  logic [STATESIZE-1:0] state_i,
+    input  logic [STATESIZE-1:0] roundkey_i,
+    output logic [STATESIZE-1:0] state_o
 );
 
-    assign out_state = in_state ^ roundkey;
+    assign state_o = state_i ^ roundkey_i;
 endmodule

@@ -1,8 +1,8 @@
 `timescale 1ns / 1ps
 
 module rijndael_sbox (
-    input  logic [7:0] in_byte,
-    output logic [7:0] out_byte
+    input  logic [7:0] x_i,
+    output logic [7:0] y_o
 );
 
     logic [7:0] sbox [256];
@@ -264,6 +264,6 @@ module rijndael_sbox (
     assign sbox[8'hfe] = 8'hbb;
     assign sbox[8'hff] = 8'h16;
 
-    assign out_byte = sbox[in_byte];
+    assign y_o = sbox[x_i];
 
 endmodule

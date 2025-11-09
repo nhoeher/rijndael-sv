@@ -6,14 +6,14 @@ module rijndael_encrypt #(
     localparam int STATESIZE = 32 * NB,
     localparam int KEYSIZE = 32 * NK
 ) (
-    input  logic                 clk,
-    input  logic                 rst,
-    input  logic                 enable,
-    input  logic [STATESIZE-1:0] plaintext,
-    input  logic [KEYSIZE-1:0]   key,
-    output logic [STATESIZE-1:0] ciphertext,
-    output logic                 ready,
-    output logic                 valid
+    input  logic                 clk_i,
+    input  logic                 rst_ni,
+    input  logic                 enable_i,
+    input  logic [STATESIZE-1:0] plaintext_i,
+    input  logic [KEYSIZE-1:0]   key_i,
+    output logic [STATESIZE-1:0] ciphertext_o,
+    output logic                 ready_o,
+    output logic                 valid_o
 );
 
     // ------------------------------------------------------------
@@ -45,29 +45,29 @@ module rijndael_encrypt #(
     // Internal Rijndael state
     logic [STATESIZE-1:0] rijndael_state, rijndael_next_state;
 
-    // Key schedule IO
+    // key_i schedule IO
     logic keyschedule_enable;
     logic [STATESIZE-1:0] roundkey;
 
-    // Instantiate key schedule
+    // Instantiate key_i schedule
     rijndael_keyschedule #(.NB (NB), .NK (NK)) keyschedule (
-        .clk (clk),
-        .rst (rst),
-        .enable (keyschedule_enable),
-        .key (key),
-        .roundkey (roundkey)
+        .clk_i (clk_i),
+        .rst_ni (rst_ni),
+        .enable_i (keyschedule_enable),
+        .key_i (key_i),
+        .roundkey_o (roundkey)
     );
 
     // Instantiate AES round
     rijndael_round #(.NB (NB)) round (
-        .is_last(is_last_round),
-        .in_state (rijndael_state),
-        .roundkey (roundkey),
-        .out_state (rijndael_next_state)
+        .is_last_i(is_last_round),
+        .state_i (rijndael_state),
+        .roundkey_i (roundkey),
+        .state_o (rijndael_next_state)
     );
 
     assign is_last_round = round_counter == LASTCOUNTERVALUE;
-    assign ciphertext = rijndael_state;
+    assign ciphertext_o = rijndael_state;
 
     // ------------------------------------------------------------
     // State machine
@@ -76,7 +76,7 @@ module rijndael_encrypt #(
     // Next state logic
     always_comb begin
         case (fsm_state)
-            STATE_IDLE : fsm_next_state = (enable) ? STATE_ENCRYPT : STATE_IDLE;
+            STATE_IDLE : fsm_next_state = (enable_i) ? STATE_ENCRYPT : STATE_IDLE;
             STATE_ENCRYPT : fsm_next_state = (is_last_round) ? STATE_IDLE : STATE_ENCRYPT;
             default : fsm_next_state = fsm_state;
         endcase
@@ -86,20 +86,20 @@ module rijndael_encrypt #(
     always_comb begin
         case (fsm_state)
             STATE_IDLE : begin
-                ready = 1'h1;
-                valid = 1'h1;
+                ready_o = 1'h1;
+                valid_o = 1'h1;
             end
 
             default : begin
-                ready = 1'h0;
-                valid = 1'h0;
+                ready_o = 1'h0;
+                valid_o = 1'h0;
             end
         endcase
     end
 
     // Update internal FSM + Rijndael state
-    always_ff @(posedge clk or posedge rst) begin
-        if (rst) begin
+    always_ff @(posedge clk_i or negedge rst_ni) begin
+        if (!rst_ni) begin
             fsm_state <= STATE_IDLE;
             rijndael_state <= '0;
             round_counter <= '0;
