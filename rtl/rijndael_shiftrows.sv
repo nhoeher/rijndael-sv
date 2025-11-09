@@ -18,7 +18,7 @@ module rijndael_shiftrows #(
             for (genvar j = 0; j < 4; j++) begin : gen_rows
                 localparam int HI = (STATESIZE-1) - (i*32 + j*8);
                 assign istate_matrix[j][i] = state_i[HI -: 8];
-                assign state_o[HI -: 8]  = ostate_matrix[j][i];
+                assign state_o[HI -: 8]    = ostate_matrix[j][i];
             end
         end
     endgenerate

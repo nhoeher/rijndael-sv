@@ -16,30 +16,30 @@ module rijndael_round #(
     logic [STATESIZE-1:0] in_addroundkey, out_addroundkey;
 
     // Connect individual round functions
-    assign in_subbytes = state_i;
-    assign in_shiftrows = out_subbytes;
-    assign in_mixcolumns = out_shiftrows;
+    assign in_subbytes    = state_i;
+    assign in_shiftrows   = out_subbytes;
+    assign in_mixcolumns  = out_shiftrows;
     assign in_addroundkey = is_last_i ? out_shiftrows : out_mixcolumns;
-    assign state_o = out_addroundkey;
+    assign state_o        = out_addroundkey;
 
     rijndael_subbytes #(.NB (NB)) subbytes (
         .state_i  ( in_subbytes),
-        .state_o (out_subbytes)
+        .state_o  (out_subbytes)
     );
 
     rijndael_shiftrows #(.NB (NB)) shiftrows (
         .state_i  ( in_shiftrows),
-        .state_o (out_shiftrows)
+        .state_o  (out_shiftrows)
     );
 
     rijndael_mixcolumns #(.NB (NB)) mixcolumns (
         .state_i  ( in_mixcolumns),
-        .state_o (out_mixcolumns)
+        .state_o  (out_mixcolumns)
     );
 
     rijndael_addroundkey #(.NB (NB)) addroundkey (
-        .state_i  ( in_addroundkey),
-        .state_o (out_addroundkey),
+        .state_i     ( in_addroundkey),
+        .state_o     (out_addroundkey),
         .roundkey_i  (roundkey_i)
     );
 

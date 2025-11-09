@@ -9,7 +9,7 @@ module rijndael_mixcolumns #(
 );
 
     // Internal 2D byte matrices
-    logic [7:0] in_state_matrix [4][NB];
+    logic [7:0]  in_state_matrix [4][NB];
     logic [7:0] out_state_matrix [4][NB];
 
     // Flattened state <-> State matrix mapping
@@ -18,7 +18,7 @@ module rijndael_mixcolumns #(
             for (genvar j = 0; j < 4; j++) begin : gen_rows
                 localparam int HI = (STATESIZE - 1) - (32 * i + 8 * j);
                 assign in_state_matrix[j][i] = state_i[HI -: 8];
-                assign state_o[HI -: 8]    = out_state_matrix[j][i];
+                assign state_o[HI -: 8]      = out_state_matrix[j][i];
             end
         end
     endgenerate

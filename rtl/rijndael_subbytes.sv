@@ -13,8 +13,8 @@ module rijndael_subbytes #(
     generate
         for (genvar i = 0; i < NUMBYTES; i++) begin : gen_sbox
             rijndael_sbox sbox (
-                .x_i(state_i[i+7:i]),
-                .y_o(state_o[i+7:i])
+                .x_i (state_i[i+7:i]),
+                .y_o (state_o[i+7:i])
             );
         end
     endgenerate

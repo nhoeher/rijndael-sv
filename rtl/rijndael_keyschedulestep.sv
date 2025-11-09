@@ -19,7 +19,7 @@ module rijndael_keyschedulestep #(
     logic [31:0] in_addrcon, out_addrcon;
 
     // Perform rotword
-    assign in_rotword = keystate_i[KEYSIZE-1 -: 32];
+    assign  in_rotword = keystate_i[KEYSIZE-1 -: 32];
     assign out_rotword = {in_rotword[23:16], in_rotword[15:8], in_rotword[7:0], in_rotword[31:24]};
 
     // Perform subword

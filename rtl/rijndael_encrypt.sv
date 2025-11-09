@@ -8,12 +8,16 @@ module rijndael_encrypt #(
 ) (
     input  logic                 clk_i,
     input  logic                 rst_ni,
+
+    // Control signals
     input  logic                 enable_i,
+    output logic                 ready_o,
+    output logic                 valid_o,
+
+    // Data signals
     input  logic [STATESIZE-1:0] plaintext_i,
     input  logic [KEYSIZE-1:0]   key_i,
-    output logic [STATESIZE-1:0] ciphertext_o,
-    output logic                 ready_o,
-    output logic                 valid_o
+    output logic [STATESIZE-1:0] ciphertext_o
 );
 
     // ------------------------------------------------------------
@@ -51,19 +55,19 @@ module rijndael_encrypt #(
 
     // Instantiate key_i schedule
     rijndael_keyschedule #(.NB (NB), .NK (NK)) keyschedule (
-        .clk_i (clk_i),
-        .rst_ni (rst_ni),
-        .enable_i (keyschedule_enable),
-        .key_i (key_i),
+        .clk_i      (clk_i),
+        .rst_ni     (rst_ni),
+        .enable_i   (keyschedule_enable),
+        .key_i      (key_i),
         .roundkey_o (roundkey)
     );
 
     // Instantiate AES round
     rijndael_round #(.NB (NB)) round (
-        .is_last_i(is_last_round),
-        .state_i (rijndael_state),
+        .is_last_i  (is_last_round),
+        .state_i    (rijndael_state),
         .roundkey_i (roundkey),
-        .state_o (rijndael_next_state)
+        .state_o    (rijndael_next_state)
     );
 
     assign is_last_round = round_counter == LASTCOUNTERVALUE;

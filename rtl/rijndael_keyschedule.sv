@@ -66,8 +66,8 @@ module rijndael_keyschedule #(
             assign next_rc[i] = mul2(rc[i]);
 
             rijndael_keyschedulestep #(.NK (NK)) keyschedulestep (
-                .keystate_i (keystate),
-                .rc_i (rc[i]),
+                .keystate_i      (keystate),
+                .rc_i            (rc[i]),
                 .next_keystate_o (next_keystate)
             );
         end
