@@ -35,7 +35,7 @@ sim_sv_rijndael_256_256: $(SRC) sim/sv/tb_rijndael_encrypt_256_256.sv
 sim_sv: sim_sv_rijndael_128_128 sim_sv_rijndael_256_256
 
 # ============================================================
-# cocotb
+# cocotb Testbenches
 # ============================================================
 
 # TODO: Add cocotb targets here
