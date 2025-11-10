@@ -16,17 +16,11 @@ from tabulate import tabulate
 from model.rijndael import Rijndael
 from util.cocotb_helper import parse_cocotb_result
 
-# Pack a list of bytes into an integer (big-endian)
-def bytes_to_int(b):
-    return int.from_bytes(bytes(b), byteorder="big")
-
-# Unpack integer (big-endian) into hex string of specified byte length
-def int_to_hex(x, n):
-    return x.to_bytes(n, byteorder="big").hex()
-
-# Transform an array of bytes into a hex string
-def bytes_to_hex(b):
-    return "".join(f"{x:02x}" for x in b)
+# ============================================================
+# Test suite configuration
+# ============================================================
+TESTS_PER_DESIGN = 16             # Number of randomly testvectors per configuration
+PRINT_PASSING_TESTVECTORS = False # Whether to print inputs / outputs of passed testvectors
 
 # ============================================================
 # Define test cases (executed for each configuration)
@@ -61,7 +55,7 @@ async def test_rijndael_encrypt(dut):
     rnd = random.Random(0x42)
     test_vectors = []
 
-    for _ in range(8):
+    for _ in range(TESTS_PER_DESIGN):
         key = rnd.randbytes(4 * NK)
         pt = rnd.randbytes(4 * NB)
         test_vectors.append((key, pt))
@@ -100,7 +94,12 @@ async def test_rijndael_encrypt(dut):
         actual_hex = int_to_hex(actual_int, 4 * NB)
 
         assert expected_hex == actual_hex, f"Ciphertext mismatch (NB = {NB}, NK = {NK}, vec = {idx}): expected {expected_hex}, actual: {actual_hex}"
-        cocotb.log.info(f"Pass (NB = {NB}, NK = {NK}, vec = {idx}): {actual_hex}")
+        if PRINT_PASSING_TESTVECTORS:
+            cocotb.log.info(f"Pass (NB = {NB}, NK = {NK}, vec = {idx}):")
+            cocotb.log.info(f"    ->  Plaintext: {pt_hex}")
+            cocotb.log.info(f"    ->        Key: {key_hex}")
+            cocotb.log.info(f"    -> Ciphertext: {actual_hex}")
+            cocotb.log.info(f"============================================================")
             
     # Run all test vectors sequentially
     for i, (key, pt) in enumerate(test_vectors):
@@ -171,5 +170,24 @@ def test_rijndael_encrypt_runner():
     print("\n")
     print(tabulate(results, headers=["NB", "NK", "Block Size", "Key Size", "Result"], tablefmt="github"))
 
+# ============================================================
+# Helper functions
+# ============================================================
+
+# Pack a list of bytes into an integer (big-endian)
+def bytes_to_int(b):
+    return int.from_bytes(bytes(b), byteorder="big")
+
+# Unpack integer (big-endian) into hex string of specified byte length
+def int_to_hex(x, n):
+    return x.to_bytes(n, byteorder="big").hex()
+
+# Transform an array of bytes into a hex string
+def bytes_to_hex(b):
+    return "".join(f"{x:02x}" for x in b)
+
+# ============================================================
+# Main method
+# ============================================================
 if __name__ == "__main__":
     test_rijndael_encrypt_runner()
