@@ -33,11 +33,12 @@ module rijndael_keyschedule #(
      * every different combination of NB and NK.
      */
     localparam int NUMKEYVARIATIONS =
-        (NB == NK || NB == 2 * NK || NK == 2 * NB) ? 1 :
+        (NB == NK || NB == 2 * NK) ? 1 :
         (NB == 4 && NK == 6) ? 3 :
         (NB == 6 && NK == 8) ? 4 :
         (NB == 6 && NK == 4) ? 4 :
-        (NB == 8 && NK == 6) ? 3 : 0;
+        (NB == 8 && NK == 6) ? 3 :
+        (NK == 2 * NB) ? 2 : 0;
 
     // Bitwidth of the register used to store the current state
     localparam int FSMSTATEWIDTH = $clog2(NUMKEYVARIATIONS);
@@ -86,13 +87,24 @@ module rijndael_keyschedule #(
                 if (!rst_ni) begin
                     key_variation_state <= 0;
                 end else if (enable_i) begin
-                    key_variation_state <= key_variation_state + 1;
+                    key_variation_state <= (key_variation_state == NUMKEYVARIATIONS - 1) ? '0 : (key_variation_state + 1);
                 end
             end
 
             // Determine roundkey_o and update_state depending on the current key variation state
-            if (NUMKEYVARIATIONS == 3) begin : gen_3_key_variations
+            if (NUMKEYVARIATIONS == 2) begin : gen_2_key_variations
                 always_comb begin
+                    case (key_variation_state)
+                        1'b0   : roundkey_o = keystate[KEYSTATESIZE-1:STATESIZE];
+                        1'b1   : roundkey_o = keystate[STATESIZE-1:0];
+                        default: roundkey_o = 'h0;
+                    endcase
+
+                    update_state = (key_variation_state == 1'b1);
+                end
+            end else if (NUMKEYVARIATIONS == 3) begin : gen_3_key_variations
+                always_comb begin
+                    // TODO: These are "the wrong way around" bit-ordering wise
                     case (key_variation_state)
                         2'b00  : roundkey_o = keystate[STATESIZE-1:0];
                         2'b01  : roundkey_o = {next_keystate[2*STATESIZE-KEYSTATESIZE-1:0], keystate[KEYSTATESIZE-1:STATESIZE]};
@@ -100,12 +112,11 @@ module rijndael_keyschedule #(
                         default: roundkey_o = 'h0;
                     endcase
 
-                    if (key_variation_state == 2'b10) begin
-                        update_state = 1'h1;
-                    end
+                    update_state = (key_variation_state == 2'b10);
                 end
             end else if (NUMKEYVARIATIONS == 4) begin : gen_4_key_variations
                 always_comb begin
+                    // TODO: These are "the wrong way around" bit-ordering wise
                     case (key_variation_state)
                         2'b00  : roundkey_o = keystate[STATESIZE-1:0];
                         2'b01  : roundkey_o = {next_keystate[2*STATESIZE-KEYSTATESIZE-1:0], keystate[KEYSTATESIZE-1:STATESIZE]};
@@ -114,9 +125,7 @@ module rijndael_keyschedule #(
                         default: roundkey_o = 'h0;
                     endcase
 
-                    if (key_variation_state == 2'b01 || key_variation_state == 2'b11) begin
-                        update_state = 1'h1;
-                    end
+                    update_state = (key_variation_state[0] == 1'b1);
                 end
             end
         end else begin : gen_one_key_variation
