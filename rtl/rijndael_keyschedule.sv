@@ -116,7 +116,7 @@ module rijndael_keyschedule #(
             assign update_state = (key_variation_state != 0);
 
             // Update key variation state every time a new round key is generated
-            always_ff @(posedge clk_i or negedge rst_ni) begin
+            always_ff @(posedge clk_i) begin
                 if (!rst_ni) begin
                     key_variation_state <= 0;
                 end else if (enable_i) begin
@@ -162,7 +162,7 @@ module rijndael_keyschedule #(
     endgenerate
 
     // Update the internal state
-    always_ff @(posedge clk_i or negedge rst_ni) begin
+    always_ff @(posedge clk_i) begin
         if (!rst_ni) begin
             // Reset round constants
             for (int i = 0; i < NUMSTEPS; i++) begin

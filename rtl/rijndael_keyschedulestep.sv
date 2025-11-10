@@ -60,7 +60,7 @@ module rijndael_keyschedulestep #(
             // If NK == 8, the fifth word of the new key state is computed differently (2nd subword)
             if (NK != 8 || i != 3) begin : gen_next_keystate_inner
                 localparam int HI = 32 * (i + 1) - 1;
-                assign next_keystate_o[HI -: 32]  = keystate_i[HI -: 32] ^ next_keystate_o[HI+32 -: 32];
+                assign next_keystate_o[HI -: 32] = keystate_i[HI -: 32] ^ next_keystate_o[HI+32 -: 32];
             end
         end
     endgenerate

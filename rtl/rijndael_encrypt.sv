@@ -113,7 +113,7 @@ module rijndael_encrypt #(
     end
 
     // Update internal FSM + Rijndael state
-    always_ff @(posedge clk_i or negedge rst_ni) begin
+    always_ff @(posedge clk_i) begin
         if (!rst_ni) begin
             fsm_state <= STATE_IDLE;
             rijndael_state <= '0;

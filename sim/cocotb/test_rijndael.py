@@ -113,7 +113,6 @@ async def test_rijndael_encrypt(dut):
 # ============================================================
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 RTL_DIR = PROJECT_ROOT / "rtl"
-PY_DIR = PROJECT_ROOT / "sim" / "python"
 BUILD_DIR = PROJECT_ROOT / "build" / "cocotb_runs"
 
 RTL_SOURCES = sorted(glob.glob(str(RTL_DIR / "*.sv")) + glob.glob(str(RTL_DIR / "*.v")) + glob.glob(str(RTL_DIR / "*.svh")))
