@@ -15,8 +15,18 @@ Currently, decryption is **not** supported since it was not needed for the inten
 ## Usage
 - Instantiate the `rijndael_encrypt` module within your design hierarchy.
 - Configure the key and block size via the module parameters `NB` and `NK`.
-- **NOTE:** Plaintext and key are copied into the internal state once the enable signal is received.
-  The input values of the module do not need to be constant for the entire execution.
+
+### Port Description
+| Port | Direction | Description |
+| -- | -- | -- |
+| clk_i | in | Clock input |
+| rst_ni | in | Active-low synchronous reset |
+| enable_i | in | Pulse high for one cycle to start encryption |
+| ready_o | out | High once the core is ready for input |
+| valid_o | out | High once the ciphertext output is valid |
+| plaintext_i | in | AES plaintext |
+| key_i | in | AES key |
+| ciphertext_o | out | AES ciphertext |
 
 ### Example Instantiation
 ```systemverilog
@@ -32,18 +42,11 @@ rijndael_encrypt #(.NB(4), .NK(4)) aes128 (
 );
 ```
 
-### Port Description
-| Port | Direction | Description |
-| -- | -- | -- |
-| clk_i | in | Clock input |
-| rst_ni | in | Active-low synchronous reset |
-| enable_i | in | Pulse high for one cycle to start encryption |
-| ready_o | out | High once the core is ready for input |
-| valid_o | out | High once the ciphertext output is valid |
-| plaintext_i | in | AES plaintext |
-| key_i | in | AES key |
-| ciphertext_o | out | AES ciphertext |
+### Example Execution Flow
+<img src="assets/example_execution_flow.png">
 
+**NOTE:** Plaintext and key are copied into the internal state once the enable signal is received.
+  The input values of the module do not need to be constant for the entire execution.
 
 ## Architecture
 Since area usage was a secondary concern, the design uses a simple LUT-based Sbox implementation and operates 
