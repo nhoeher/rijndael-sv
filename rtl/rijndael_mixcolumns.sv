@@ -27,15 +27,16 @@ module rijndael_mixcolumns #(
     endgenerate
 
     // Functions mul1, mul2, mul3 for multiplication in Galois field
-    function static [7:0] mul1(input logic [7:0] x);
+    // => Declared as automatic because Synopsys DC does not like static
+    function automatic [7:0] mul1(input logic [7:0] x);
         return x;
     endfunction
 
-    function static [7:0] mul2(input logic [7:0] x);
+    function automatic [7:0] mul2(input logic [7:0] x);
         return {x[6:0], 1'b0} ^ (x[7] * 8'h1b);
     endfunction
 
-    function static [7:0] mul3(input logic [7:0] x);
+    function automatic [7:0] mul3(input logic [7:0] x);
         return mul1(x) ^ mul2(x);
     endfunction
 

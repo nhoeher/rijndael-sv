@@ -62,7 +62,8 @@ module rijndael_keyschedule #(
     logic update_state;
 
     // Logic to compute the next round constant
-    function static [7:0] mul2(input logic [7:0] x);
+    // => Declared as automatic because Synopsys DC does not like static
+    function automatic [7:0] mul2(input logic [7:0] x);
         return {x[6:0], 1'b0} ^ (x[7] * 8'h1b);
     endfunction
 
