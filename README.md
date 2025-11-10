@@ -19,14 +19,14 @@ Currently, decryption is **not** supported since it was not needed for the inten
 ### Port Description
 | Port | Direction | Description |
 | -- | -- | -- |
-| clk_i | in | Clock input |
-| rst_ni | in | Active-low synchronous reset |
-| enable_i | in | Pulse high for one cycle to start encryption |
-| ready_o | out | High once the core is ready for input |
-| valid_o | out | High once the ciphertext output is valid |
-| plaintext_i | in | AES plaintext |
-| key_i | in | AES key |
-| ciphertext_o | out | AES ciphertext |
+| `clk_i` | in | Clock input |
+| `rst_ni` | in | Active-low synchronous reset |
+| `enable_i` | in | Pulse high for one cycle to start encryption |
+| `ready_o` | out | High once the core is ready for input |
+| `valid_o` | out | High once the ciphertext output is valid |
+| `plaintext_i` | in | AES plaintext |
+| `key_i` | in | AES key |
+| `ciphertext_o` | out | AES ciphertext |
 
 ### Example Instantiation
 ```systemverilog
@@ -87,6 +87,8 @@ Vivado synthesis script (see `syn/` directory). For ASIC synthesis, Synopsys Des
 | 8 | 4 | 37394.28 | 34979.53 | 2414.75 | 364.96 |
 | 8 | 6 | 39877.92 | 36875.31 | 3002.61 | 337.84 |
 | 8 | 8 | 37219.52 | 34840.95 | 2378.57 | 373.13 |
+
+(GE = Gate Equivalents, COMB AREA = Combinational Area)
 
 ## Executing Tests
 We include both a set of minimal SystemVerilog testbenches for two relevant configurations (see `sim/sv`)
