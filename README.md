@@ -1,6 +1,6 @@
 # rijndael-sv
 
-This repository contains a generic SystemVerilog hardware implementation of the original **Rijndael** proposal,
+This repository contains a generic SystemVerilog hardware implementation of the original Rijndael proposal,
 that is parameterizable for the number of blocks within the state (`NB = [4,6,8]`) and the number of blocks
 within the key (`NK = [4,6,8]`).
 
