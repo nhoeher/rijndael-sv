@@ -10,10 +10,9 @@ module tb_rijndael_encrypt_256_256;
     initial clk = 0;
     always #5 clk = ~clk;
 
-    `ifdef VCD
+    `ifdef WAVES
         initial begin
-            $display("VCD: Writing waveform to tb_rijndael_encrypt_256_256.vcd");
-            $dumpfile("tb_rijndael_encrypt_256_256.vcd");
+            $dumpfile("sim.fst");
             $dumpvars(0, tb_rijndael_encrypt_256_256);
         end
     `endif
@@ -39,21 +38,21 @@ module tb_rijndael_encrypt_256_256;
 
         // Initial reset
         rst = 0;
-        #30;
+        repeat(3) @(posedge clk);
         rst = 1;
-        #20;
+        repeat(2) @(posedge clk);
 
         // Set test vector inputs and pulse enable
-        // TODO: Replace with proper test vectors
-        plaintext = 256'h0000000000000000000000000000000000000000000000000000000000000000;
-        key       = 256'h0000000000000000000000000000000000000000000000000000000000000000;
-        expected  = 256'h0000000000000000000000000000000000000000000000000000000000000000;
+        plaintext = 256'h3243f6a8885a308d313198a2e03707343243f6a8885a308d313198a2e0370734;
+        key       = 256'h2b7e151628aed2a6abf7158809cf4f3c2b7e151628aed2a6abf7158809cf4f3c;
+        expected  = 256'h512b41370932f9be41a6fa2332ac4f63f016c06f0a3d5352ae3b7ede4acc343d;
         enable = 1;
-        #10;
+        @(posedge clk);
         enable = 0;
+        @(posedge clk);
 
         // Wait for execution to finish and check result
-        while (!valid || !ready) #10;
+        while (!valid || !ready) @(posedge clk);
         if (ciphertext !== expected) begin
             $display("Test failed!");
             $finish;

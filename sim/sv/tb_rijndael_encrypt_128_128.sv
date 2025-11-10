@@ -10,10 +10,9 @@ module tb_rijndael_encrypt_128_128;
     initial clk = 0;
     always #5 clk = ~clk;
 
-    `ifdef VCD
+    `ifdef WAVES
         initial begin
-            $display("VCD: Writing waveform to tb_rijndael_encrypt_128_128.vcd");
-            $dumpfile("tb_rijndael_encrypt_128_128.vcd");
+            $dumpfile("sim.fst");
             $dumpvars(0, tb_rijndael_encrypt_128_128);
         end
     `endif
@@ -39,9 +38,9 @@ module tb_rijndael_encrypt_128_128;
 
         // Initial reset
         rst = 0;
-        #30;
+        repeat(3) @(posedge clk);
         rst = 1;
-        #20;
+        repeat(2) @(posedge clk);
 
         // Set test vector inputs and pulse enable
         plaintext = 128'h3243f6a8885a308d313198a2e0370734;
@@ -50,9 +49,10 @@ module tb_rijndael_encrypt_128_128;
         enable = 1;
         @(posedge clk);
         enable = 0;
+        @(posedge clk);
 
         // Wait for execution to finish and check result
-        while (!valid || !ready) #10;
+        while (!valid || !ready) @(posedge clk);
         if (ciphertext !== expected) begin
             $display("Test failed!");
             $finish;

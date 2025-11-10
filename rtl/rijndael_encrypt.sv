@@ -29,11 +29,12 @@ module rijndael_encrypt #(
     // Compute the bitwidth needed for the round counter
     localparam int ROUNDCOUNTERWIDTH = $clog2(NR);
     // Determine the last value of the round counter for comparison later on
-    localparam logic[ROUNDCOUNTERWIDTH-1:0] LASTCOUNTERVALUE = NR[ROUNDCOUNTERWIDTH-1:0];
+    localparam logic[ROUNDCOUNTERWIDTH-1:0] LASTCOUNTERVALUE = NR[ROUNDCOUNTERWIDTH-1:0] - 1;
 
     // FSM states
     typedef enum logic [1:0] {
         STATE_IDLE,
+        STATE_INIT_ADDROUNDKEY,
         STATE_ENCRYPT
     } fsm_state_e;
 
@@ -50,13 +51,13 @@ module rijndael_encrypt #(
     logic [STATESIZE-1:0] rijndael_state, rijndael_next_state;
 
     // key_i schedule IO
-    logic keyschedule_enable;
+    logic keyschedule_enable, keyschedule_rst_ni;
     logic [STATESIZE-1:0] roundkey;
 
     // Instantiate key_i schedule
     rijndael_keyschedule #(.NB (NB), .NK (NK)) keyschedule (
         .clk_i      (clk_i),
-        .rst_ni     (rst_ni),
+        .rst_ni     (keyschedule_rst_ni),
         .enable_i   (keyschedule_enable),
         .key_i      (key_i),
         .roundkey_o (roundkey)
@@ -72,7 +73,8 @@ module rijndael_encrypt #(
 
     assign is_last_round = round_counter == LASTCOUNTERVALUE;
     assign ciphertext_o = rijndael_state;
-    assign keyschedule_enable = fsm_state == STATE_ENCRYPT;
+    assign keyschedule_enable = (fsm_state == STATE_ENCRYPT || fsm_state == STATE_INIT_ADDROUNDKEY);
+    assign keyschedule_rst_ni = (fsm_state != STATE_IDLE);
 
     // ------------------------------------------------------------
     // State machine
@@ -81,9 +83,14 @@ module rijndael_encrypt #(
     // Next state logic
     always_comb begin
         case (fsm_state)
-            STATE_IDLE : fsm_next_state = fsm_state_e'((enable_i) ? STATE_ENCRYPT : STATE_IDLE);
-            STATE_ENCRYPT : fsm_next_state = fsm_state_e'((is_last_round) ? STATE_IDLE : STATE_ENCRYPT);
-            default : fsm_next_state = fsm_state;
+            STATE_IDLE:
+                fsm_next_state = fsm_state_e'((enable_i) ? STATE_INIT_ADDROUNDKEY : STATE_IDLE);
+            STATE_INIT_ADDROUNDKEY:
+                fsm_next_state = fsm_state_e'(STATE_ENCRYPT);
+            STATE_ENCRYPT:
+                fsm_next_state = fsm_state_e'((is_last_round) ? STATE_IDLE : STATE_ENCRYPT);
+            default:
+                fsm_next_state = fsm_state;
         endcase
     end
 
@@ -113,6 +120,8 @@ module rijndael_encrypt #(
             if (fsm_state == STATE_IDLE) begin
                 rijndael_state <= plaintext_i;
                 round_counter <= '0;
+            end else if (fsm_state == STATE_INIT_ADDROUNDKEY) begin
+                rijndael_state <= rijndael_state ^ roundkey;
             end else if (fsm_state == STATE_ENCRYPT) begin
                 rijndael_state <= rijndael_next_state;
                 round_counter <= round_counter + 1;

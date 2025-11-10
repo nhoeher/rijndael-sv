@@ -19,7 +19,7 @@ module rijndael_keyschedulestep #(
     logic [31:0] in_addrcon, out_addrcon;
 
     // Perform rotword
-    assign  in_rotword = keystate_i[KEYSIZE-1 -: 32];
+    assign  in_rotword = keystate_i[31:0];
     assign out_rotword = {in_rotword[23:16], in_rotword[15:8], in_rotword[7:0], in_rotword[31:24]};
 
     // Perform subword
@@ -50,14 +50,14 @@ module rijndael_keyschedulestep #(
     assign out_addrcon = {in_addrcon[31:24] ^ rc_i, in_addrcon[23:0]};
 
     // Compute the first 4 output words (same for all values of NK)
-    assign next_keystate_o[31: 0]  = keystate_i[31: 0] ^ out_addrcon;
+    assign next_keystate_o[KEYSIZE-1 -: 32] = keystate_i[KEYSIZE-1 -: 32] ^ out_addrcon;
 
     generate
-        for (genvar i = 1; i < NK; i++) begin : gen_next_keystate
+        for (genvar i = 0; i < (NK - 1); i++) begin : gen_next_keystate
             // If NK == 8, the fifth word of the new key state is computed differently (2nd subword)
             if (NK != 8 || i != 4) begin : gen_next_keystate_inner
                 localparam int HI = 32 * (i + 1) - 1;
-                assign next_keystate_o[HI -: 32]  = keystate_i[HI -: 32] ^ next_keystate_o[HI-32 -: 32];
+                assign next_keystate_o[HI -: 32]  = keystate_i[HI -: 32] ^ next_keystate_o[HI+32 -: 32];
             end
         end
     endgenerate

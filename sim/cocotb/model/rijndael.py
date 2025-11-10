@@ -123,11 +123,6 @@ class Rijndael:
     # ============================================================
     # Key Expansion / Key Schedule
     # ============================================================
-    RCON = [
-        0x00,0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80,0x1B,0x36,
-        0x6C,0xD8,0xAB,0x4D,0x9A,0x2F,0x5E,0xBC,0x63,0xC6,0x97,
-    ]
-
     def word_from_bytes(self, b: list) -> int:
         return (b[0] << 24) | (b[1] << 16) | (b[2] << 8) | (b[3] << 0)
     
@@ -152,10 +147,13 @@ class Rijndael:
             w[i] = self.word_from_bytes(key[4*i:4*i+4])
 
         # Key schedule to create all other words
+        rcon = 0x01
+
         for i in range(self.NK, num_words):
             xor_term = w[i-1]
             if i % self.NK == 0:
-                xor_term = self.subword(self.rotword(xor_term)) ^ (self.RCON[i // self.NK] << 24)
+                xor_term = self.subword(self.rotword(xor_term)) ^ (rcon << 24)
+                rcon = self.mul2(rcon)
             elif self.NK == 8 and (i % self.NK == 4):
                 xor_term = self.subword(xor_term)
             w[i] = w[i-self.NK] ^ xor_term
