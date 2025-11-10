@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2025 Niklas Höher
+
 # ============================================================
 # Makefile for SystemVerilog and cocotb testbenches
 # ============================================================

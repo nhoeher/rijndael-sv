@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2025 Niklas Höher
+
 `timescale 1ns / 1ps
 
 module rijndael_addroundkey #(

@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2025 Niklas Höher
 
 class Rijndael:
     """Configurable Rijndael implementation used as a reference for the cocotb test suite"""

@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2025 Niklas Höher
+
 import os
 import glob
 import random
