@@ -51,9 +51,10 @@ module rijndael_keyschedule #(
     // ------------------------------------------------------------
 
     // Signals for storing the current and next internal keystate
-    logic [KEYSTATESIZE-1:0] keystate, next_keystate;
+    logic [KEYSTATESIZE-1:0] initial_keystate, keystate, next_keystate;
 
     // Signals for storing current and next round constants for each step instance
+    logic [7:0] initial_rc [NUMSTEPS];
     logic [7:0] rc [NUMSTEPS];
     logic [7:0] next_rc [NUMSTEPS];
 
@@ -66,17 +67,38 @@ module rijndael_keyschedule #(
     endfunction
 
     // Instantiate step instances
+    rijndael_keyschedulestep #(.NK (NK)) keyschedulestep0 (
+        .keystate_i      (keystate[KEYSIZE-1:0]),
+        .rc_i            (rc[0]),
+        .next_keystate_o (next_keystate[KEYSTATESIZE-1 -: KEYSIZE])
+    );
+
     generate
-        for (genvar i = 0; i < NUMSTEPS; i++) begin : gen_keyschedulestep
-            assign next_rc[i] = mul2(rc[i]);
+        if (NUMSTEPS == 2) begin : gen_two_keyschedulesteps
+            logic [KEYSIZE-1:0] keyschedulestep1_state_i;
+            logic [7:0] keyschedulestep1_rc_i;
 
-            localparam int HI = (i + 1) * KEYSIZE - 1;
+            assign keyschedulestep1_state_i = (!rst_ni) ? key_i : next_keystate[KEYSTATESIZE-1 -: KEYSIZE];
+            assign keyschedulestep1_rc_i = (!rst_ni) ? 'h01 : rc[1];
 
-            rijndael_keyschedulestep #(.NK (NK)) keyschedulestep (
-                .keystate_i      (keystate[HI -: KEYSIZE]),
-                .rc_i            (rc[i]),
-                .next_keystate_o (next_keystate[HI -: KEYSIZE])
+            rijndael_keyschedulestep #(.NK (NK)) keyschedulestep1 (
+                .keystate_i      (keyschedulestep1_state_i),
+                .rc_i            (keyschedulestep1_rc_i),
+                .next_keystate_o (next_keystate[KEYSIZE-1:0])
             );
+
+            // If the internal key schedule state consists of 2 * 32 * NK bits, we also need
+            // to perform one key schedule step as part of the initialization procedure.
+            assign initial_keystate = {key_i, next_keystate[KEYSIZE-1:0]};
+            assign initial_rc[0] = 8'h2;
+            assign initial_rc[1] = 8'h4;
+            // Since we perform two steps per update, we have to increment the RCs twice
+            assign next_rc[0] = mul2(mul2(rc[0]));
+            assign next_rc[1] = mul2(mul2(rc[1]));
+        end else begin : gen_one_keyschedulestep
+            assign initial_keystate = key_i;
+            assign initial_rc[0] = 8'h1;
+            assign next_rc[0] = mul2(rc[0]);
         end
     endgenerate
 
@@ -144,10 +166,10 @@ module rijndael_keyschedule #(
         if (!rst_ni) begin
             // Reset round constants
             for (int i = 0; i < NUMSTEPS; i++) begin
-                rc[i] <= 8'h1;
+                rc[i] <= initial_rc[i];
             end
             // Reset internal key state to the main Rijndael key
-            keystate <= key_i;
+            keystate <= initial_keystate;
         end else if (enable_i && update_state) begin
             // Update round constants
             for (int i = 0; i < NUMSTEPS; i++) begin

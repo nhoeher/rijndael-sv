@@ -120,7 +120,7 @@ module rijndael_encrypt #(
             round_counter <= '0;
         end else begin
             fsm_state <= fsm_next_state;
-            if (fsm_state == STATE_IDLE) begin
+            if (fsm_state == STATE_IDLE && enable_i) begin
                 rijndael_state <= plaintext_i;
                 round_counter <= '0;
             end else if (fsm_state == STATE_INIT_ADDROUNDKEY) begin
