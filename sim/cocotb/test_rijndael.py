@@ -126,7 +126,7 @@ def test_rijndael_encrypt_runner():
     for nb in NB_VALUES:
         for nk in NK_VALUES:
 
-            build_dir = BUILD_DIR / f"rijndael_{32 * nb}_{32 * nk}"
+            build_dir = BUILD_DIR / f"rijndael_{nb}b_{nk}k"
             build_dir.mkdir(parents = True, exist_ok = True)
 
             print(f"Running cocotb tests for NB = {nb} and NK = {nk}...")

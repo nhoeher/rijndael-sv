@@ -55,7 +55,7 @@ module rijndael_keyschedulestep #(
     generate
         for (genvar i = 0; i < (NK - 1); i++) begin : gen_next_keystate
             // If NK == 8, the fifth word of the new key state is computed differently (2nd subword)
-            if (NK != 8 || i != 4) begin : gen_next_keystate_inner
+            if (NK != 8 || i != 3) begin : gen_next_keystate_inner
                 localparam int HI = 32 * (i + 1) - 1;
                 assign next_keystate_o[HI -: 32]  = keystate_i[HI -: 32] ^ next_keystate_o[HI+32 -: 32];
             end
@@ -74,7 +74,7 @@ module rijndael_keyschedulestep #(
         if (NK == 8) begin : gen_nk8
             logic [31:0] in_subword2, out_subword2;
 
-            assign in_subword2 = next_keystate_o[127:96];
+            assign in_subword2 = next_keystate_o[159:128];
 
             rijndael_sbox s4 (
                 .x_i ( in_subword2[31:24]),
@@ -96,7 +96,7 @@ module rijndael_keyschedulestep #(
                 .y_o (out_subword2[7:0])
             );
 
-            assign next_keystate_o[159:128] = keystate_i[159:128] ^ out_subword2;
+            assign next_keystate_o[127:96] = keystate_i[127:96] ^ out_subword2;
         end
     endgenerate
 

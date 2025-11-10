@@ -24,12 +24,14 @@ sim_sv_rijndael_128_128: $(SRC) sim/sv/tb_rijndael_encrypt_128_128.sv
 	@mkdir -p $(BUILD_DIR)/sv_runs/rijndael_128_128
 	$(IVERILOG) $(IVERILOG_FLAGS) -o $(BUILD_DIR)/sv_runs/rijndael_128_128/sim.vvp $(SRC) sim/sv/tb_rijndael_encrypt_128_128.sv
 	cd $(BUILD_DIR)/sv_runs/rijndael_128_128 && $(VVP) sim.vvp
+	@echo "";
 
 # --- Rijndael 256-256 ---
 sim_sv_rijndael_256_256: $(SRC) sim/sv/tb_rijndael_encrypt_256_256.sv
 	@mkdir -p $(BUILD_DIR)/sv_runs/rijndael_256_256
 	$(IVERILOG) $(IVERILOG_FLAGS) -o $(BUILD_DIR)/sv_runs/rijndael_256_256/sim.vvp $(SRC) sim/sv/tb_rijndael_encrypt_256_256.sv
 	cd $(BUILD_DIR)/sv_runs/rijndael_256_256 && $(VVP) sim.vvp
+	@echo "";
 
 # Run all SystemVerilog testbenches
 sim_sv: sim_sv_rijndael_128_128 sim_sv_rijndael_256_256
