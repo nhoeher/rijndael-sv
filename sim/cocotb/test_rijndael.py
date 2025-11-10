@@ -61,11 +61,6 @@ async def test_rijndael_encrypt(dut):
     rnd = random.Random(0x42)
     test_vectors = []
 
-    # TODO: Remove
-    if (NB == 4 and NK == 8):
-        test_vectors.append((bytes.fromhex("603DEB1015CA71BE2B73AEF0857D77811F352C073B6108D72D9810A30914DFF4"),
-                         bytes.fromhex("6BC1BEE22E409F96E93D7E117393172A")))
-
     for _ in range(8):
         key = rnd.randbytes(4 * NK)
         pt = rnd.randbytes(4 * NB)

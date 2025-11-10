@@ -83,14 +83,23 @@ module rijndael_keyschedule #(
     // Logic to select the next round key
     generate
         if (NUMKEYVARIATIONS > 1) begin : gen_different_key_variations
+            // Shorthand naming of these parameters to increase readability
+            localparam int X = STATESIZE;
+            localparam int Y = KEYSTATESIZE;
+
+            // Signal for storing the current FSM state
             logic [FSMSTATEWIDTH-1:0] key_variation_state;
+
+            // Define when the internal key state needs to be updated
+            assign update_state = (key_variation_state != 0);
 
             // Update key variation state every time a new round key is generated
             always_ff @(posedge clk_i or negedge rst_ni) begin
                 if (!rst_ni) begin
                     key_variation_state <= 0;
                 end else if (enable_i) begin
-                    key_variation_state <= (key_variation_state == NUMKEYVARIATIONS - 1) ? '0 : (key_variation_state + 1);
+                    key_variation_state <=
+                        (key_variation_state == NUMKEYVARIATIONS-1) ? 0 : (key_variation_state+1);
                 end
             end
 
@@ -98,37 +107,29 @@ module rijndael_keyschedule #(
             if (NUMKEYVARIATIONS == 2) begin : gen_2_key_variations
                 always_comb begin
                     case (key_variation_state)
-                        1'b0   : roundkey_o = keystate[KEYSTATESIZE-1:STATESIZE];
-                        1'b1   : roundkey_o = keystate[STATESIZE-1:0];
+                        1'b0   : roundkey_o = keystate[Y-1:X];
+                        1'b1   : roundkey_o = keystate[X-1:0];
                         default: roundkey_o = 'h0;
                     endcase
-
-                    update_state = (key_variation_state == 1'b1);
                 end
             end else if (NUMKEYVARIATIONS == 3) begin : gen_3_key_variations
                 always_comb begin
-                    // TODO: These are "the wrong way around" bit-ordering wise
                     case (key_variation_state)
-                        2'b00  : roundkey_o = keystate[STATESIZE-1:0];
-                        2'b01  : roundkey_o = {next_keystate[2*STATESIZE-KEYSTATESIZE-1:0], keystate[KEYSTATESIZE-1:STATESIZE]};
-                        2'b10  : roundkey_o = next_keystate[KEYSTATESIZE-1:2*STATESIZE-KEYSTATESIZE];
+                        2'b00  : roundkey_o = keystate[Y-1:Y-X];
+                        2'b01  : roundkey_o = {keystate[Y-X-1:0], next_keystate[Y-1:X]};
+                        2'b10  : roundkey_o = keystate[X-1:0];
                         default: roundkey_o = 'h0;
                     endcase
-
-                    update_state = (key_variation_state == 2'b10);
                 end
             end else if (NUMKEYVARIATIONS == 4) begin : gen_4_key_variations
                 always_comb begin
-                    // TODO: These are "the wrong way around" bit-ordering wise
                     case (key_variation_state)
-                        2'b00  : roundkey_o = keystate[STATESIZE-1:0];
-                        2'b01  : roundkey_o = {next_keystate[2*STATESIZE-KEYSTATESIZE-1:0], keystate[KEYSTATESIZE-1:STATESIZE]};
-                        2'b10  : roundkey_o = {next_keystate[3*STATESIZE-2*KEYSTATESIZE-1:0], keystate[KEYSTATESIZE-1:2*STATESIZE-KEYSTATESIZE]};
-                        2'b11  : roundkey_o = next_keystate[KEYSTATESIZE-1:3*STATESIZE-2*KEYSTATESIZE];
+                        2'b00  : roundkey_o = keystate[Y-1:Y-X];
+                        2'b01  : roundkey_o = {keystate[Y-X-1:0], next_keystate[Y-1:2*Y-2*X]};
+                        2'b10  : roundkey_o = {keystate[2*Y-2*X-1:0], next_keystate[Y-1:3*Y-3*X]};
+                        2'b11  : roundkey_o = keystate[3*Y-3*X-1:0];
                         default: roundkey_o = 'h0;
                     endcase
-
-                    update_state = (key_variation_state[0] == 1'b1);
                 end
             end
         end else begin : gen_one_key_variation
